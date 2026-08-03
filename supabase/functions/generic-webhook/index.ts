@@ -70,7 +70,23 @@ function connectorToken(service: string): string | null {
   return null;
 }
 
+// Anything the handler throws — a malformed batch body, a .throwOnError()
+// on the contacts/conversations upserts, an edit/revoke update — used to
+// bubble to the runtime, which answers 500 with nothing on stdout. Catch it
+// here so every 500 says why.
 Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (error) {
+    log.error("Connector webhook failed", {
+      error: error instanceof Error ? error.message : String(error),
+      path: new URL(req.url).pathname,
+    });
+    return new Response("Internal error", { status: 500 });
+  }
+});
+
+async function handle(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
   }
@@ -318,4 +334,4 @@ Deno.serve(async (req) => {
   }
 
   return new Response();
-});
+}
