@@ -12,7 +12,11 @@ import {
 import type { SupabaseClient } from "@supabase/supabase-js";
 // Import map is bad at resolving entry points, so we need to use the full path.
 import { Client } from "npm:@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "npm:@modelcontextprotocol/sdk/client/streamableHttp.js";
+import {
+  StreamableHTTPClientTransport,
+  StreamableHTTPError,
+} from "npm:@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { SSEClientTransport } from "npm:@modelcontextprotocol/sdk/client/sse.js";
 import type {
   CallToolRequest,
   CallToolResult,
@@ -29,15 +33,26 @@ export type MCPServer = {
   tools: Tool[];
 };
 
+/**
+ * A server that only speaks the deprecated HTTP+SSE transport — Baserow's
+ * `/mcp/<token>/sse` is one — serves no POST route at the connection URL, so
+ * the Streamable HTTP handshake dies on a 404/405 before a word of MCP is
+ * spoken. That is the spec's signal to retry the connection as SSE.
+ *
+ * 401 and 403 are excluded: there the server did route the POST and answered
+ * about credentials, so a second attempt would only bury the real error.
+ */
+function speaksLegacySSE(error: unknown): boolean {
+  return error instanceof StreamableHTTPError &&
+    error.code !== undefined &&
+    error.code >= 400 && error.code < 500 &&
+    error.code !== 401 && error.code !== 403;
+}
+
 export async function initMCP(
   tool: LocalMCPToolConfig,
   context?: RequestContext,
 ): Promise<MCPServer> {
-  const client = new Client({
-    name: tool.label,
-    version: "1.0",
-  });
-
   const headers = {
     ...(context && contextHeaders(context)),
     ...tool.config.headers,
@@ -51,17 +66,36 @@ export async function initMCP(
     "http://api.supabase.internal:8000",
   );
 
-  const transport = new StreamableHTTPClientTransport(
-    new URL(tool.config.url),
-    {
-      ...(Object.keys(headers).length > 0 && {
-        requestInit: { headers },
-      }),
-    },
-  );
+  const url = new URL(tool.config.url);
+
+  const transportOptions = {
+    ...(Object.keys(headers).length > 0 && {
+      requestInit: { headers },
+    }),
+  };
+
+  const newClient = () => new Client({ name: tool.label, version: "1.0" });
+
+  let client = newClient();
 
   try {
-    await client.connect(transport);
+    try {
+      await client.connect(
+        new StreamableHTTPClientTransport(
+          url,
+          transportOptions,
+        ),
+      );
+    } catch (error) {
+      if (!speaksLegacySSE(error)) throw error;
+
+      // The client closes itself when initialize fails, so the fallback needs
+      // a fresh one. SSE opens with GET and learns where to POST from the
+      // server's `endpoint` event.
+      client = newClient();
+
+      await client.connect(new SSEClientTransport(url, transportOptions));
+    }
 
     const toolsResult: ListToolsResult = await client.listTools();
 
