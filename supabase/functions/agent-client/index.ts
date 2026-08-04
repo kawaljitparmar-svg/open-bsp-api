@@ -248,10 +248,15 @@ Deno.serve(async (req) => {
 
   // SESSION RESTART if /new is found — USEFUL FOR WHATSAPP TESTING
 
+  // content.text may be absent despite type === "text": legacy whatsapp-web
+  // bridge builds emitted reactions as a TextPart with no text at all. One
+  // such row in the window crashed this scan — and with it every later
+  // inbound message of the conversation.
   const firstMessageIndex = messages.findLastIndex(
     ({ direction, content }) =>
       direction === "incoming" &&
       content.type === "text" &&
+      typeof content.text === "string" &&
       content.text.startsWith("/new"),
   );
 
