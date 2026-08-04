@@ -14,10 +14,6 @@
   <a href="https://chat.whatsapp.com/Ch6AwZizSDt5quzHodcYh5"><img src="https://img.shields.io/badge/Community-25D366?logo=whatsapp&logoColor=white" alt="Community"></a>
 </p>
 
-<p align="center">
-  <a href="https://www.producthunt.com/products/openbsp?launch=openbsp&utm_source=badge-follow&utm_medium=badge" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=1245331&theme=light" alt="OpenBSP | Product Hunt" width="250" height="54" /></a>
-</p>
-
 OpenBSP is designed for both individual businesses and service providers. You
 can use it to manage your own WhatsApp and Instagram messaging, or leverage its
 features to become a
