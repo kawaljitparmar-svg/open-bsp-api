@@ -1053,7 +1053,7 @@ Requires Node 🐢 and Docker 🐋.
 ```
 npx supabase start
 ```
-
+ 
 After editing the schema files, generate a migration
 
 ```
