@@ -496,21 +496,25 @@ export class ChatCompletionsHandler
     // Note: for Bedrock, the base URL is https://${bedrock-runtime-endpoint}/openai/v1
 
     const billable = !agent.extra.api_key;
-
-    // Fetch cost pricing before the LLM call
-    const { data: costs } = await this.client
-      .schema("billing")
-      .from("costs")
-      .select("pricing, quantity")
-      .eq("provider", provider)
-      .eq("product", model)
-      .lte("effective_at", new Date().toISOString())
-      .order("effective_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .throwOnError();
+    // deno-lint-ignore no-explicit-any
+    let costs: any = null;
 
     if (billable) {
+      // Fetch cost pricing before the LLM call
+      const { data: costsData } = await this.client
+        .schema("billing")
+        .from("costs")
+        .select("pricing, quantity")
+        .eq("provider", provider)
+        .eq("product", model)
+        .lte("effective_at", new Date().toISOString())
+        .order("effective_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+        .throwOnError();
+
+      costs = costsData;
+
       // Block if we don't have pricing for this model
       if (!costs) {
         throw new Error(`No pricing found for ${provider}/${model}`);
@@ -587,7 +591,7 @@ export class ChatCompletionsHandler
     }
 
     // Record AI usage in the ledger
-    if (response.usage) {
+    if (billable && response.usage) {
       const cost = costs
         ? this.calculateCost(
           response.usage,
