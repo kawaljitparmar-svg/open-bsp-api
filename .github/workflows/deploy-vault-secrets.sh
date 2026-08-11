@@ -21,7 +21,7 @@ if [ -n "$SUPABASE_DB_URL" ] || [ -n "$SUPABASE_URL" ]; then
     DB_URL="$SUPABASE_DB_URL"
     EDGE_FUNCTIONS_URL="${SUPABASE_URL}/functions/v1"
     
-elif [ -n "$SUPABASE_PROJECT_ID" ] || [ -n "$SUPABASE_DB_PASSWORD" ] || [ -n "$SUPABASE_SESSION_POOLER_HOST" ]; then
+elif [ -n "$SUPABASE_PROJECT_ID" ] && [ -n "$SUPABASE_DB_PASSWORD" ] && [ -n "$SUPABASE_SESSION_POOLER_HOST" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
     # Supabase Cloud deployment
     echo "Detected Supabase Cloud deployment"
     
@@ -37,10 +37,9 @@ elif [ -n "$SUPABASE_PROJECT_ID" ] || [ -n "$SUPABASE_DB_PASSWORD" ] || [ -n "$S
     EDGE_FUNCTIONS_URL="https://${SUPABASE_PROJECT_ID}.supabase.co/functions/v1"
     
 else
-    echo "Error: Cannot determine deployment type"
-    echo "For self-hosted: Set SUPABASE_DB_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY"
-    echo "For cloud: Set SUPABASE_PROJECT_ID, SUPABASE_DB_PASSWORD, SUPABASE_SERVICE_ROLE_KEY"
-    exit 1
+    echo "Vault secrets deployment skipped: DB credentials not configured."
+    echo "Vault secrets can be configured manually via the Supabase SQL editor."
+    exit 0
 fi
 
 echo "Updating vault secrets..."
