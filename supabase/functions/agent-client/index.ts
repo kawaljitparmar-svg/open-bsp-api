@@ -95,16 +95,7 @@ function getNewestIncomingMessage(
   return sortedMessages[0];
 }
 
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
 Deno.serve(async (req) => {
-  const authHeader = req.headers.get("Authorization");
-  const token = authHeader?.replace("Bearer ", "");
-
-  if (token !== SERVICE_ROLE_KEY) {
-    return new Response("Unauthorized", { status: 401 });
-  }
-
   const client = createUnsecureClient();
 
   const incoming = ((await req.json()) as WebhookPayload<MessageRow>).record!;
