@@ -223,6 +223,19 @@ begin
       -- so new.contact_id would be null and overwrite the existing link.
       new.contact_id := old.contact_id;
     elsif new.contact_id is null then
+      -- For INSERT ... ON CONFLICT DO UPDATE, PostgreSQL fires both the BEFORE
+      -- INSERT trigger (old=null) and then the BEFORE UPDATE trigger. Skip
+      -- contact creation in the INSERT path if the row already exists — the
+      -- BEFORE UPDATE trigger will run next and handle it, avoiding an orphan.
+      if old is null and exists (
+        select 1 from public.contacts_addresses
+        where organization_id = new.organization_id
+          and service = new.service
+          and address = new.address
+      ) then
+        return new;
+      end if;
+
       -- No contact linked from either side, create one
       insert into public.contacts (
         organization_id,
