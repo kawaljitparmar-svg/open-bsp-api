@@ -680,6 +680,10 @@ async function processMessage(request: Request): Promise<Response> {
               phone_number: contact.wa_id,
               bsuid: contact.user_id,
               address_type: contact.wa_id ? "phone" : "bsuid",
+              synced: {
+                action: "add",
+                name: contact.profile?.name,
+              },
             },
           });
         }
