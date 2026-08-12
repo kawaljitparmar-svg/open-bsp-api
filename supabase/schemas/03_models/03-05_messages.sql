@@ -148,19 +148,6 @@ when (
 )
 execute function public.pause_conversation_on_human_message();
 
-create trigger handle_message_to_media_preprocessor
-after insert
-on public.messages
-for each row
-when (
-  (
-    new.direction = 'outgoing'::public.direction
-    or new.direction = 'incoming'::public.direction
-  )
-  and (new.status ->> 'pending') is not null
-  and (new.content ->> 'type') = 'file'
-)
-execute function public.edge_function('/media-preprocessor', 'post');
 
 create trigger z_notify_webhook_messages
 after insert or update

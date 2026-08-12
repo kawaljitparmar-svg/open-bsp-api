@@ -50,8 +50,6 @@ const PAUSED_CONV_WINDOW = 12 * 60 * 60 * 1000; // 12 hours
 const MESSAGES_TIME_LIMIT = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MESSAGES_QUANTITY_LIMIT = 50;
 const RESPONSE_DELAY_SECS = 3; // 3 seconds
-const MEDIA_PREPROCESSING_TIMEOUT = 30 * 1000; // 30 seconds
-const MEDIA_PREPROCESSING_POLLING_INTERVAL = 5 * 1000; // 5 seconds
 
 /**
  * timestamp vs created_at
@@ -449,55 +447,6 @@ Deno.serve(async (req) => {
         throw new Error("Max LLM iterations reached!");
       }
 
-      // CHECK FOR PENDING PREPROCESSING
-
-      while (org.extra.media_preprocessing?.mode === "active") {
-        const pendingPreprocessing = messages.filter(
-          (m) =>
-            m.content.type === "file" &&
-            m.status.pending && // Note: not using status.preprocessing to avoid race conditions with the media preprocessor Edge Function.
-            !m.status.preprocessed &&
-            +new Date(m.status.pending) >
-              +new Date() - MEDIA_PREPROCESSING_TIMEOUT,
-        );
-
-        if (!pendingPreprocessing.length) {
-          break;
-        }
-
-        // WAIT FOR THE PREPROCESSING TO COMPLETE
-
-        log.info(
-          `Waiting ${MEDIA_PREPROCESSING_POLLING_INTERVAL}ms for pending preprocessing to complete...`,
-        );
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, MEDIA_PREPROCESSING_POLLING_INTERVAL)
-        );
-
-        // Note: we could check for newer messages here too, but it would bloat the code.
-
-        // RETRIEVE PROCESSED MESSAGES
-
-        const { data: pending_messages } = await client
-          .from("messages")
-          .select()
-          .in(
-            "id",
-            pendingPreprocessing.map((m) => m.id),
-          )
-          .throwOnError();
-
-        // Update the messages with the pending processing.
-        for (const pm of pending_messages) {
-          const index = messages.findIndex((m) => m.id === pm.id);
-
-          if (index > -1) {
-            messages[index] = pm;
-          }
-        }
-      }
-
       // CHECK IF THERE IS A NEWER INCOMING MESSAGE (posterior to the incoming one)
 
       const { data: new_message } = await client
@@ -513,7 +462,7 @@ Deno.serve(async (req) => {
 
       if (new_message) {
         log.info(
-          `Newer message ${new_message.id} for conversation ${conv.id} found while processing tool use messages and/or waiting for pending preprocessing. Skipping response.`,
+          `Newer message ${new_message.id} for conversation ${conv.id} found while processing tool use messages. Skipping response.`,
         );
 
         return new Response("ok", { headers: corsHeaders });

@@ -76,8 +76,6 @@ export type IncomingStatus = {
   pending?: string;
   read?: string;
   typing?: string;
-  preprocessing?: string;
-  preprocessed?: string;
 };
 
 export type OutgoingStatus = {

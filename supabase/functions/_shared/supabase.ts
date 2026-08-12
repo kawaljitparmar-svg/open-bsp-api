@@ -109,7 +109,6 @@ export type {
   Memory,
   OrganizationAddressExtra,
   OrganizationExtra,
-  PreprocessingConfig,
   ToolConfig,
   WhatsAppContactAddressExtra,
   WhatsAppOrganizationAddressExtra,

@@ -34,9 +34,8 @@
 //
 // Automation gating rides on the existing status.pending convention: a LIVE
 // message omits `status`, so the column default ({pending: now()}) arms the
-// agent/media-preprocessor triggers; HISTORY imports and echoes carry an
-// explicit final status (e.g. {"read": ...}) and are therefore inert. Do not
-// add a separate history flag.
+// agent trigger; HISTORY imports and echoes carry an explicit final status
+// (e.g. {"read": ...}) and are therefore inert. Do not add a separate history flag.
 import * as log from "../_shared/logger.ts";
 import {
   type ContactAddressInsert,

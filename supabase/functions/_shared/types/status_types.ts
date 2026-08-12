@@ -53,8 +53,6 @@ export type IncomingStatus = {
   typing?: string;
   edited?: string; // sender edited the message (Instagram, WhatsApp coexistence)
   deleted?: string; // sender deleted/revoked the message (Instagram, WhatsApp coexistence)
-  preprocessing?: string;
-  preprocessed?: string;
 };
 
 export type OutgoingStatus = {
@@ -67,8 +65,6 @@ export type OutgoingStatus = {
   edited?: string; // sender edited the message (Instagram, WhatsApp coexistence)
   deleted?: string; // sender deleted/revoked the message (Instagram, WhatsApp coexistence)
   failed?: string;
-  preprocessing?: string;
-  preprocessed?: string;
   errors?: WebhookError[];
 };
 

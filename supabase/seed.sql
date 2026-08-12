@@ -100,9 +100,9 @@ insert into billing.costs (provider, product, quantity, unit, pricing) values
 
 -- Create all 3 organizations
 insert into public.organizations (id, name, extra) values
-  ('3a182d8d-d6d8-44bd-b021-029915476b8c', 'Mountain Peaks', '{"response_delay_seconds": 0, "media_preprocessing": {"mode": "active"}}'),
-  ('4b293e9e-5f4a-5b7c-9d0e-1f2a3b4c5d6e', 'Plains', '{"response_delay_seconds": 0, "media_preprocessing": {"mode": "active"}}'),
-  ('5c3a4f0f-6e5b-6c8d-0e1f-2a3b4c5d6e7f', 'Dark Forest', '{"response_delay_seconds": 0, "media_preprocessing": {"mode": "active"}}')
+  ('3a182d8d-d6d8-44bd-b021-029915476b8c', 'Mountain Peaks', '{"response_delay_seconds": 0}'),
+  ('4b293e9e-5f4a-5b7c-9d0e-1f2a3b4c5d6e', 'Plains', '{"response_delay_seconds": 0}'),
+  ('5c3a4f0f-6e5b-6c8d-0e1f-2a3b4c5d6e7f', 'Dark Forest', '{"response_delay_seconds": 0}')
 ;
 
 -- Create all users
