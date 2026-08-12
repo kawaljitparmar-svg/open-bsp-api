@@ -144,9 +144,7 @@ interface ListConversationsParams {
 }
 
 export async function listConversations(params: ListConversationsParams) {
-  const accountPhone = params.accountPhone
-    ? normalizePhone(params.accountPhone)
-    : undefined;
+  const accountPhone = params.accountPhone ?? undefined;
   const allowedAccounts = params.allowedAccounts;
   const allowedContacts = params.allowedContacts;
   const limit = params.limit || 10;
@@ -245,9 +243,7 @@ interface FetchConversationParams {
 
 export async function fetchConversation(params: FetchConversationParams) {
   const contactPhone = normalizePhone(params.contactPhone);
-  const accountPhone = params.accountPhone
-    ? normalizePhone(params.accountPhone)
-    : undefined;
+  const accountPhone = params.accountPhone ?? undefined;
   const allowedAccounts = params.allowedAccounts;
   const allowedContacts = params.allowedContacts;
 
@@ -416,9 +412,7 @@ interface SendMessageParams {
 
 export async function sendMessage(params: SendMessageParams) {
   const contactPhone = normalizePhone(params.contactPhone);
-  const accountPhone = params.accountPhone
-    ? normalizePhone(params.accountPhone)
-    : undefined;
+  const accountPhone = params.accountPhone ?? undefined;
   const allowedAccounts = params.allowedAccounts;
   const allowedContacts = params.allowedContacts;
 
@@ -498,9 +492,7 @@ interface ListTemplatesParams {
 }
 
 export async function listTemplates(params: ListTemplatesParams) {
-  const accountPhone = params.accountPhone
-    ? normalizePhone(params.accountPhone)
-    : undefined;
+  const accountPhone = params.accountPhone ?? undefined;
   const allowedAccounts = params.allowedAccounts;
 
   const account = await resolveAccount({
@@ -536,9 +528,7 @@ interface FetchTemplateDetailsParams {
 }
 
 export async function fetchTemplate(params: FetchTemplateDetailsParams) {
-  const accountPhone = params.accountPhone
-    ? normalizePhone(params.accountPhone)
-    : undefined;
+  const accountPhone = params.accountPhone ?? undefined;
   const allowedAccounts = params.allowedAccounts;
 
   const account = await resolveAccount({

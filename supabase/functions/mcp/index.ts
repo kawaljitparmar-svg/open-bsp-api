@@ -120,8 +120,9 @@ app.use("*", async (c, next) => {
     const allowedContacts = allowedContactsHeader?.split(",").map((p) =>
       p.replace(/\D/g, "")
     ).filter(Boolean) || [];
+    // Account phones are E.164 (e.g. "+918427936906") — preserve the + prefix
     const allowedAccounts = allowedAccountsHeader?.split(",").map((p) =>
-      p.replace(/\D/g, "")
+      p.trim()
     ).filter(Boolean) || [];
 
     c.set("allowedContacts", allowedContacts);
