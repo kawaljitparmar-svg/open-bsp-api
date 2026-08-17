@@ -505,4 +505,69 @@ app.post("/whatsapp-management/onboard", async (c) => {
   }
 });
 
+// Contacts check route — verifies if a phone number is registered on WhatsApp
+app.post(
+  "/whatsapp-management/contacts/check",
+  requireRoles(["member", "admin", "owner"]),
+  async (c) => {
+    const { organization_id, organization_address, phone_number } =
+      await c.req.json<{
+        organization_id: string;
+        organization_address: string;
+        phone_number: string;
+      }>();
+
+    const client = c.get("supabase");
+
+    const { data: account } = await client
+      .from("organizations_addresses")
+      .select("extra->>access_token")
+      .eq("organization_id", organization_id)
+      .eq("address", organization_address)
+      .single()
+      .throwOnError();
+
+    const access_token =
+      (account as { access_token: string | null }).access_token ||
+      Deno.env.get("META_SYSTEM_USER_ACCESS_TOKEN") ||
+      "";
+
+    const contact = phone_number.startsWith("+")
+      ? phone_number
+      : `+${phone_number}`;
+
+    const response = await fetch(
+      `https://graph.facebook.com/v24.0/${organization_address}/contacts`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          blocking: "wait",
+          contacts: [contact],
+          force_check: true,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const cause = await response.json().catch(() => ({}));
+      log.warn("Contacts check failed", { phone_number, cause });
+      throw new HTTPException(502, {
+        message: "WhatsApp contacts check failed",
+        cause,
+      });
+    }
+
+    const result = (await response.json()) as {
+      contacts: Array<{ input: string; status: string; wa_id?: string }>;
+    };
+
+    const entry = result.contacts?.[0];
+    return c.json({ valid: entry?.status === "valid", wa_id: entry?.wa_id });
+  },
+);
+
 Deno.serve(app.fetch);
